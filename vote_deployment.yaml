@@ -3,10 +3,16 @@ kind: Deployment
 metadata:
   name: vote
 spec:
-  replicas: 3
-  selector:
+ selector:
     matchLabels:
       app: vote
+  replicas: 1
+  minReadySeconds: 15
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
   template:
     metadata:
       labels:
@@ -16,4 +22,7 @@ spec:
       - name: vote
         image: instavote/vote
         ports:
-        - containerPort: 80
+          - containerPort: 80
+        resources:
+          requests:
+          cpu: 200m
