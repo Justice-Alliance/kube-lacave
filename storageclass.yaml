@@ -1,0 +1,34 @@
+apiVersion: ceph.rook.io/v1
+kind: CephBlockPool
+metadata:
+  name: replicapool
+  namespace: rook-ceph-inspq
+spec:
+  failureDomain: host
+  replicated:
+    size: 3
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: rook-ceph-block
+# Modifiez le préfixe du provisionneur "rook-ceph" pour qu'il corresponde à l'espace de nom de l'opérateur si nécessaire
+provisioner: rook-ceph-inspq.rbd.csi.ceph.com
+parameters:
+    # clusterID est l'espace de noms où le cluster de tour exécute clusterID: rook-ceph-inspq
+    # Pool Ceph dans lequel l'image RBD doit être créée
+    pool: replicapool
+    # RBD image format. Defaults to "2".
+    imageFormat: "2"
+    # Fonctions d'image RBD. Disponible pour imageFormat: "2". CSI RBD ne prend actuellement en charge que la fonction de «superposition» .
+    imageFeatures: layering
+    # Les secrets contiennent les informations d'identification d'administrateur Ceph.
+    csi.storage.k8s.io/provisioner-secret-name: rook-ceph-csi
+    csi.storage.k8s.io/provisioner-secret-namespace: rook-ceph-inspq
+    csi.storage.k8s.io/node-stage-secret-name: rook-ceph-csi
+    csi.storage.k8s.io/node-stage-secret-namespace: rook-ceph-inspq
+    # Spécifiez le type de système de fichiers du volume. Si non spécifié, csiprovisioner
+    # définira par défaut `ext4`.
+    csi.storage.k8s.io/fstype: xfs
+ # Supprimer le volume rbd lorsqu'un PVC est supprimé
+reclaimPolicy: Delete
